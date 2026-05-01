@@ -43,17 +43,17 @@ namespace RunTimeParameters {
     //
     double Mach;   /*--- The Mach number ---*/
     double Froude; /*--- The Froude number ---*/
+    double Rossby; /*--- The Rossby number ---*/
 
     double L_ref;   /*--- Reference length ---*/
     double u_ref;   /*--- Reference velocity ---*/
     double p_ref;   /*--- Reference pressure ---*/
     double T_ref;   /*--- Reference temperature ---*/
     double rho_ref; /*--- Reference density ---*/
+    double H;  /*--- Perturbation height ---*/
+    double xc; /*--- x-center of the perturbation ---*/
+    double ac; /*--- Semi-Width of the perturbation ---*/
 
-    double h;  /*--- Mountain height ---*/
-    double xc; /*--- x-center of the mountain ---*/
-    double yc; /*--- y-center of the mountain ---*/
-    double ac; /*--- Semi-Width of the mountain ---*/
 
     double N; /*--- Buoyancy frequency ---*/
 
@@ -142,14 +142,14 @@ namespace RunTimeParameters {
                                 z_max(1.0),
                                 Mach(1.0),
                                 Froude(0.319275428407050),
+                                Rossby(100),
                                 L_ref(1.0),
                                 u_ref(1.0),
                                 p_ref(1.0),
                                 T_ref(1.0),
                                 rho_ref(1.0),
-                                h(1.0),
+                                H(1.0),
                                 xc(1.0),
-                                yc(1.0),
                                 ac(1.0),
                                 N(0.01),
                                 u_bar(1.0),
@@ -240,6 +240,10 @@ namespace RunTimeParameters {
                         "0.319275428407050",
                         Patterns::Double(0.0),
                         "The Froude number.");
+      prm.declare_entry("Rossby",
+                        "100",
+                        Patterns::Double(0.0),
+                        "The Rossby number.");
 
       prm.declare_entry("L_ref",
                         "1.0",
@@ -262,22 +266,18 @@ namespace RunTimeParameters {
                         Patterns::Double(0.0),
                         "The reference density.");
 
-      prm.declare_entry("h",
+      prm.declare_entry("H",
                         "1.0",
                         Patterns::Double(0.0),
-                        "The hill height.");
+                        "The perturbation height.");
       prm.declare_entry("xc",
                         "1.0",
                         Patterns::Double(0.0),
-                        "The x-Center of the hill.");
-      prm.declare_entry("yc",
-                        "1.0",
-                        Patterns::Double(0.0),
-                        "The y-Center of the hill.");
+                        "The x-Center of the perturbation.");
       prm.declare_entry("ac",
                         "1.0",
                         Patterns::Double(0.0),
-                        "The width of the hill.");
+                        "The width of the perturbation.");
 
       prm.declare_entry("N",
                         "0.01",
@@ -514,6 +514,7 @@ namespace RunTimeParameters {
 
       Mach   = prm.get_double("Mach");
       Froude = prm.get_double("Froude");
+      Rossby = prm.get_double("Rossby");
 
       L_ref   = prm.get_double("L_ref");
       u_ref   = prm.get_double("u_ref");
@@ -521,9 +522,8 @@ namespace RunTimeParameters {
       T_ref   = prm.get_double("T_ref");
       rho_ref = prm.get_double("rho_ref");
 
-      h  = prm.get_double("h");
+      H  = prm.get_double("H");
       xc = prm.get_double("xc");
-      yc = prm.get_double("yc");
       ac = prm.get_double("ac");
 
       N = prm.get_double("N");
