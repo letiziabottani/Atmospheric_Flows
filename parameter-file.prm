@@ -12,6 +12,7 @@ subsection Physical data
 
   set Mach   = 0.03447578013
   set Froude = 0.10096375546
+  set Rossby = 100
 
   set L_ref   = 1000.0            # Reference length to build non-dimensional domain
   set u_ref   = 10.0              # Reference velocity for non-dimensional variables 
