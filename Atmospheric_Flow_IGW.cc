@@ -1,5 +1,7 @@
 /* Author: Giuseppe Orlando, 2026. */
 
+#define ROTATION_R1
+
 // @sect{Include files}
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -39,7 +41,18 @@ namespace fs = std::filesystem;
 /*--- Include headers related to the problem of interest ---*/
 #include "include/ic_bc/ic_IGW.h"
 
-#include "euler_operator_rotation.h"
+// Operator selection (fixed-point vs full-implicit)
+#if defined(ROTATION_R1) && defined(ROTATION_R2)
+#  error "Define only one of ROTATION_R1 or ROTATION_R2."
+#elif defined(ROTATION_R1)
+#  include "euler_operator_rotation.h"
+#  pragma message("Building with ROTATION_R1: using euler_operator_rotation.h")
+#elif defined(ROTATION_R2)
+#  include "euler_operator_rotation_R2.h"
+#  pragma message("Building with ROTATION_R2: using euler_operator_rotation_R2.h")
+#else
+#  error "Define ROTATION_R1 or ROTATION_R2 (exactly one)."
+#endif
 
 using namespace Atmospheric_Flow;
 
@@ -652,7 +665,21 @@ void EulerSolver<dim>::pressure_fixed_point() {
   euler_matrix.initialize(matrix_free_storage, index_dof_handler_tmp, index_dof_handler_tmp);
   euler_matrix.set_Euler_stage(EquationData::U_INDEX_SYSTEM);
 
-  euler_matrix.vmult(rhs_u_precomputed, rhs_momentum);
+  #ifdef ROTATION_R1
+      euler_matrix.vmult(rhs_u_precomputed, rhs_momentum);
+  #else 
+     Vec y; 
+      y.reinit(rhs_u_precomputed, false);
+      euler_matrix.vmult(y, rhs_momentum); //inv(A)*F
+
+      if (IMEX_stage <= n_stages)
+      euler_matrix.vmult_inv_I_plus_betaJ(rhs_u_precomputed, y);
+    else
+      rhs_u_precomputed.equ(Number(1.0), y); // (I + beta J)^{-1} inv(A) F
+ 
+ #endif
+  
+ 
 
   // Perform matrix-vector multiplication with enthalpy matrix (which changes over time)
   euler_matrix.set_pres_fixed(pres_fixed); // Set the current pressure for the fixed point loop to the operator
@@ -660,6 +687,18 @@ void EulerSolver<dim>::pressure_fixed_point() {
 
   // Conclude computation of rhs for pressure fixed point
   rhs_pres.add(static_cast<Number>(-1.0), rhs_pres_precomputed);
+
+  #ifdef ROTATION_R2
+    // Compute gravity contribution
+  decltype(rhs_pres) rhs_pres_grav;
+  rhs_pres_grav.reinit(rhs_pres, false);
+
+  euler_matrix.vmult_gravity(rhs_pres_grav, rhs_u_precomputed);  // M_g A^{-1} F
+  rhs_pres.add(-1.0, rhs_pres_grav);
+
+  
+  #endif
+
 
   /*--- Set the proper dof index ---*/
   const std::vector<unsigned> index_dof_handler = {EquationData::P_INDEX_DOF};
@@ -738,12 +777,31 @@ void EulerSolver<dim>::update_velocity() {
   }
 
   /*--- Solve the system for the velocity ---*/
+
+  #ifdef ROTATION_R1
   if(IMEX_stage <= n_stages) {
     euler_matrix.vmult(u_fixed, rhs_u);
   }
   else {
     euler_matrix.vmult(u_s.back(), rhs_u);
   }
+  #else 
+  Vec y;
+  y.reinit(rhs_u, false);
+
+  // y = A^{-1} * rhs_u
+  euler_matrix.vmult(y, rhs_u);
+
+  // u = (A+R)^{-1} * rhs_u = inv(I+betaJ) * y
+  if(IMEX_stage <= n_stages) {
+    euler_matrix.vmult_inv_I_plus_betaJ(u_fixed, y);
+  }
+  else {
+    euler_matrix.vmult(u_s.back(), rhs_u);
+  }
+  
+  #endif
+  
 }
 
 // @sect{<code>EulerSolver::update_pressure</code>}

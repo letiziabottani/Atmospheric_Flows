@@ -37,7 +37,7 @@ namespace fs = std::filesystem;
 #include <deal.II/distributed/solution_transfer.h>
 
 /*--- Include headers related to the problem of interest ---*/
-#include "include/ic_bc/ic_3D_nonhydrostatic_hill.h"
+#include "include/ic_bc/ic_3D_hydrostatic_hill.h"
 
 #include "include/ic_bc/Rayleigh_damping.h"
 #include "include/mapping/mapping.h"
@@ -286,6 +286,8 @@ private:
 
   Number h_min; /*--- Minimum cell diameter ---*/
 
+  //Number p_ref; /*--- Reference pressure ---*/
+
   // Auxiliary routines to numerically solve the problem
   void update_density(); /*--- Function to update the density ---*/
 
@@ -351,10 +353,10 @@ EulerSolver<dim>::EulerSolver(const RunTimeParameters::Data_Storage& data,
   manifold(push_forward, pull_back),
   /*--- Initial condition ---*/
   rho_init(data.p_bar, data.T_bar, data.rho_ref, data.L_ref,
-           data.N, data.initial_time),
+           data.T_ref, data.initial_time),
   u_init(data.u_bar, data.u_ref, data.initial_time),
   pres_init(data.p_bar, data.T_bar, data.p_ref, data.L_ref,
-            data.N, data.initial_time),
+            data.T_ref, data.initial_time),
   /*--- Boundary condition (Rayleigh damping) ---*/
   dt_tau(data.z_start, data.z_max, data.lambda_z, data.L_ref),
   dt_tau_aux(data.z_start, data.z_max, data.lambda_z, data.L_ref),
@@ -392,7 +394,8 @@ EulerSolver<dim>::EulerSolver(const RunTimeParameters::Data_Storage& data,
   rtol_fixed_point(data.rtol_fixed_point),
   Ma(euler_matrix.get_Mach()), inv_Ma(static_cast<Number>(1.0)/Ma),
   gamma(EquationData::Cp_Cv),
-  Gamma((gamma - static_cast<Number>(1.0))/gamma)
+  Gamma((gamma - static_cast<Number>(1.0))/gamma)//, 
+ // p_ref(data.p_ref)
   {
     /*--- Check time step coherence ---*/
     if(data.CFL.empty()) {
@@ -485,13 +488,41 @@ void EulerSolver<dim>::create_triangulation(const RunTimeParameters::Data_Storag
   GridTools::collect_periodic_faces(triangulation, 2, 3, 1, periodic_faces);
   triangulation.add_periodicity(periodic_faces);
 
-  /*--- Build the proper triangulation ---*/
+ /*--- Build the proper triangulation ---*/
   if(restart) {
     triangulation.load(saving_dir.string() + "/solution_ser-" + Utilities::int_to_string(step_restart, 5));
   }
   else {
     triangulation.refine_global(data.n_global_refines);
+  
+    /*
+    for(const auto& cell: triangulation.active_cell_iterators()) {
+      if(cell->center()[2] < 10000.0/static_cast<Number>(data.L_ref) &&
+         cell->center()[0] >static_cast<Number>(data.x_start_left)/static_cast<Number>(data.L_ref) &&
+         cell->center()[0] < static_cast<Number>(data.x_start_right)/static_cast<Number>(data.L_ref) &&
+         cell->center()[1] > static_cast<Number>(data.y_start_left)/static_cast<Number>(data.L_ref) &&
+         cell->center()[1] < static_cast<Number>(data.y_start_right)/static_cast<Number>(data.L_ref))   {
+         cell->set_refine_flag();
+      
+    }
   }
+    triangulation.prepare_coarsening_and_refinement();
+    triangulation.execute_coarsening_and_refinement();
+  
+
+    for(const auto& cell: triangulation.active_cell_iterators()) {
+      if(cell->center()[2] < 2000.0/static_cast<Number>(data.L_ref) &&
+         cell->center()[0] > static_cast<Number>(data.x_start_left)/static_cast<Number>(data.L_ref) &&
+         cell->center()[0] < static_cast<Number>(data.x_start_right)/static_cast<Number>(data.L_ref) &&
+         cell->center()[1] > static_cast<Number>(data.y_start_left)/static_cast<Number>(data.L_ref) &&
+         cell->center()[1] < static_cast<Number>(data.y_start_right)/static_cast<Number>(data.L_ref)) {
+         cell->set_refine_flag();
+      }
+    }
+    triangulation.prepare_coarsening_and_refinement();
+    triangulation.execute_coarsening_and_refinement(); */
+}
+
 
   /*--- Apply the mapping to build the physical domain ---*/
   GridTools::transform([this](const Point<dim, Number>& chart_point) {
@@ -949,7 +980,7 @@ void EulerSolver<dim>::output_results(const unsigned step) {
       cell->get_dof_indices(dof_indices);
       for(unsigned idx = 0; idx < dof_indices.size(); ++idx) {
         const auto pres = pres_s.front()(dof_indices[idx]);
-        const auto T    = pres/rho_s.front()(dof_indices[idx]);
+        const auto T    = pres/(static_cast<Number>(EquationData::R) * rho_s.front()(dof_indices[idx]));
         const auto Pi   = std::pow(pres, Gamma);
         theta_old(dof_indices[idx]) = T/Pi;
       }
@@ -962,13 +993,14 @@ void EulerSolver<dim>::output_results(const unsigned step) {
   rho_bar.update_ghost_values();
   data_out.add_data_vector(dof_handler_density, rho_bar, "rho_bar", {DataComponentInterpretation::component_is_scalar});
   u_bar.update_ghost_values();
-  std::fill(velocity_names.begin(), velocity_names.end(), "u_bar");
-  data_out.add_data_vector(dof_handler_velocity, u_bar, velocity_names, component_interpretation_velocity);
+  std::vector<std::string> velocity_names_bar = {"u_bar","v_bar","w_bar"};
+  data_out.add_data_vector(dof_handler_velocity, u_bar, velocity_names_bar, component_interpretation_velocity);
   pres_bar.update_ghost_values();
   data_out.add_data_vector(dof_handler_pressure, pres_bar, "p_bar", {DataComponentInterpretation::component_is_scalar});
 
   data_out.build_patches(mapping, EquationData::degree_u, DataOut<dim>::curved_inner_cells);
 
+  
   DataOutBase::DataOutFilterFlags flags(false, true);
   DataOutBase::DataOutFilter      data_filter(flags);
   data_out.write_filtered_data(data_filter);
@@ -983,6 +1015,7 @@ void EulerSolver<dim>::output_results(const unsigned step) {
   data_out.write_vtu_in_parallel(output, MPI_COMM_WORLD);
 
   /*--- Save high order mapping ---*/
+  /*
   output = saving_dir.string() + "/solution_high_order-" + Utilities::int_to_string(step, 5) + ".vtu";
   DataOutBase::VtkFlags flags_high_order;
   flags_high_order.write_higher_order_cells = true;
@@ -1118,7 +1151,7 @@ EulerSolver<dim>::compute_max_Cu_per_direction() const {
   std::fill(res.begin(), res.end(), std::numeric_limits<Number>::min());
 
   /*--- Loop over all cells ---*/
-  for(const auto& cell: dof_handler_velocity.active_cell_iterators()) {
+ for(const auto& cell: dof_handler_velocity.active_cell_iterators()) {
     if(cell->is_locally_owned()) {
       fe_values.reinit(cell);
       fe_values.get_function_values(u_s.front(), solution_values_velocity);
