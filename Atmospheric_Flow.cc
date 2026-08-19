@@ -37,7 +37,7 @@ namespace fs = std::filesystem;
 #include <deal.II/distributed/solution_transfer.h>
 
 /*--- Include headers related to the problem of interest ---*/
-#include "include/ic_bc/ic_3D_hydrostatic_hill.h"
+#include "include/ic_bc/ic_3D_nonhydrostatic_hill.h"
 
 #include "include/ic_bc/Rayleigh_damping.h"
 #include "include/mapping/mapping.h"

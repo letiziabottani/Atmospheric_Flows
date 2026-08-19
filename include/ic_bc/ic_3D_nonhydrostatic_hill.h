@@ -127,7 +127,7 @@ namespace ICBC {
                         Gamma/(static_cast<T>(EquationData::R)*T_bar)*
                         (static_cast<T>(1.0) - std::exp(-N*N/static_cast<T>(EquationData::g)*p[2]*L_ref));
 
-    return (p_bar/p_ref)*std::pow(pi_bar, static_cast<T>(1.0)/Gamma);
+    return std::pow(pi_bar, static_cast<T>(1.0)/Gamma);//(p_bar/p_ref)*
   }
 
 
@@ -185,9 +185,8 @@ namespace ICBC {
 
     const auto rho_bar = p_bar/(static_cast<T>(EquationData::R)*T_bar);
 
-    return (rho_bar/rho_ref)*
-           T_bar/theta_bar*std::pow(pi_bar, static_cast<T>(1.0)/
-                                            (static_cast<T>(EquationData::Cp_Cv) - static_cast<T>(1.0)));
+    return std::pow(pi_bar, static_cast<T>(1.0)/
+                                            (static_cast<T>(EquationData::Cp_Cv) - static_cast<T>(1.0))); //(rho_bar/rho_ref)*T_bar/theta_bar*
   }
 
 } // namespace EquationData
