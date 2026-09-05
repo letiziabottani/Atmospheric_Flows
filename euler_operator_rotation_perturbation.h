@@ -543,7 +543,7 @@ namespace Atmospheric_Flow {
                                  Vec&                                 dst,
                                  const std::vector<Vec>&              src,
                                  const std::pair<unsigned, unsigned>& cell_range) const {
-    
+    return;
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the old density and
@@ -705,7 +705,7 @@ namespace Atmospheric_Flow {
                                  Vec&                                 dst,
                                  const std::vector<Vec>&              src,
                                  const std::pair<unsigned, unsigned>& face_range) const {
-                                 
+                                  return; 
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities.
@@ -974,6 +974,8 @@ namespace Atmospheric_Flow {
                                   Vec&                                 dst,
                                   const std::vector<Vec>&              src,
                                   const std::pair<unsigned, unsigned>& cell_range) const {
+
+                                    return; 
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities. ---*/
@@ -1043,12 +1045,12 @@ namespace Atmospheric_Flow {
 
               flux += a[IMEX_stage - 1][s - 1]*dt*((rho_bar + rho_prime_s)*tensor_product_u_s_tmp);
               flux -= a[IMEX_stage - 1][s - 1]*dt*(rho_bar*tensor_product_u_s_bar_tmp);
-              //flux += a_tilde[IMEX_stage - 1][s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
+              flux += a_tilde[IMEX_stage - 1][s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
             }
             else {
               flux += a[IMEX_stage - 1][s - 1]*dt*((rho_bar + rho_prime_s)*tensor_product_u_s );
               flux -= a[IMEX_stage - 1][s - 1]*dt*(rho_bar*tensor_product_u_s_bar);
-              //flux += a_tilde[IMEX_stage - 1][s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
+              flux += a_tilde[IMEX_stage - 1][s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
             }
 
             gravity_term += a_tilde[IMEX_stage - 1][s - 1]*dt*
@@ -1070,7 +1072,7 @@ namespace Atmospheric_Flow {
           rotation_term += a_tilde[IMEX_stage - 1][IMEX_stage - 1]*dt*
                            (inv_Ro*((rho_bar + rho_prime_s)*k_cross_u_prime_fixed_s+rho_prime_s*k_cross_u_bar));
 
-          phi.submit_value((rho_bar + rho_prime_old)*u_prime_old + (rho_prime_old - rho_prime_s)*u_bar - gravity_term -rotation_term, q);
+          phi.submit_value((rho_bar + rho_prime_old)*u_prime_old + (rho_prime_old - rho_prime_s)*u_bar - gravity_term -0.0*rotation_term, q);
           phi.submit_gradient(flux, q);
         }
 
@@ -1143,12 +1145,12 @@ namespace Atmospheric_Flow {
 
               flux += b[s - 1]*dt*((rho_bar + rho_prime_s)*tensor_product_u_s_tmp);
               flux -= b[s - 1]*dt*(rho_bar*tensor_product_u_s_bar_tmp);
-              //flux += b_tilde[s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
+              flux += b_tilde[s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
             }
             else {
               flux += b[s - 1]*dt*((rho_bar + rho_prime_s)*tensor_product_u_s);
               flux -= b[s - 1]*dt*(rho_bar*tensor_product_u_s_bar);
-              //flux += b_tilde[s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
+              flux += b_tilde[s - 1]*dt*(inv_Ma2*p_prime_s_times_identity);
             }
 
             gravity_term += b_tilde[s - 1]*dt*
@@ -1162,7 +1164,7 @@ namespace Atmospheric_Flow {
 
           const auto& rho_prime_curr = phi_rho_prime.back().get_value(q);
 
-          phi.submit_value((rho_bar + rho_prime_old)*u_prime_old + (rho_prime_old - rho_prime_curr)*u_bar - gravity_term - rotation_term, q);
+          phi.submit_value((rho_bar + rho_prime_old)*u_prime_old + (rho_prime_old - rho_prime_curr)*u_bar - gravity_term - 0.0*rotation_term, q);
           phi.submit_gradient(flux, q);
         }
 
@@ -1184,6 +1186,7 @@ namespace Atmospheric_Flow {
                                   Vec&                                 dst,
                                   const std::vector<Vec>&              src,
                                   const std::pair<unsigned, unsigned>& face_range) const {
+                                    return;
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities. ---*/
@@ -1403,7 +1406,7 @@ namespace Atmospheric_Flow {
                                       Vec&                                 dst,
                                       const std::vector<Vec>&              src,
                                       const std::pair<unsigned, unsigned>& face_range) const {
-                                       
+                                        return;
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities. ---*/
@@ -1438,7 +1441,10 @@ namespace Atmospheric_Flow {
             const auto& pres_prime_s_D = pres_prime_s;
 
             /*--- Compute the numerical flux ---*/
-            //flux_num += a_tilde[IMEX_stage - 1][s - 1]*dt*num_flux.numerical_flux_momentum_implicit(pres_prime_s,pres_prime_s_D,n_minus_tmp);
+            flux_num += a_tilde[IMEX_stage - 1][s - 1]*dt*
+                        num_flux.numerical_flux_momentum_implicit(pres_prime_s,
+                                                                  pres_prime_s_D,
+                                                                  n_minus_tmp);
           }
 
           phi.submit_value(-flux_num, q);
@@ -1481,7 +1487,10 @@ namespace Atmospheric_Flow {
             const auto& pres_prime_s_D = pres_prime_s;
 
             /*--- Compute the numerical flux ---*/
-            //flux_num += b_tilde[s - 1]*dt*num_flux.numerical_flux_momentum_implicit(pres_prime_s,  pres_prime_s_D, n_minus_tmp);
+            flux_num += b_tilde[s - 1]*dt*
+                        num_flux.numerical_flux_momentum_implicit(pres_prime_s,
+                                                                  pres_prime_s_D,
+                                                                  n_minus_tmp);
           }
 
           phi.submit_value(-flux_num, q);
@@ -1720,7 +1729,7 @@ namespace Atmospheric_Flow {
                                 Vec&                                 dst,
                                 const std::vector<Vec>&              src,
                                 const std::pair<unsigned, unsigned>& cell_range) const {
-                                
+                                  return;
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities. ---*/
@@ -1958,7 +1967,7 @@ namespace Atmospheric_Flow {
                                 Vec&                                 dst,
                                 const std::vector<Vec>&              src,
                                 const std::pair<unsigned, unsigned>& face_range) const {
-                                  
+                                  return;
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities. ---*/

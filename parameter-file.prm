@@ -85,7 +85,7 @@ end
 
 subsection Output data
   # The directory where results are saved
-  set saving directory = BAROCLINIC_WAVE_INVERSE_MASS_MATRIX_mesh_coarse_dt1_v35const
+  set saving directory = BAROCLINIC_WAVE_INVERSE_MASS_MATRIX
 
   # The output frequency
   set output_interval = 20000
