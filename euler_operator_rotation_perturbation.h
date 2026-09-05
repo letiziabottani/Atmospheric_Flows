@@ -543,7 +543,7 @@ namespace Atmospheric_Flow {
                                  Vec&                                 dst,
                                  const std::vector<Vec>&              src,
                                  const std::pair<unsigned, unsigned>& cell_range) const {
-    return;
+    
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the old density and
@@ -705,7 +705,7 @@ namespace Atmospheric_Flow {
                                  Vec&                                 dst,
                                  const std::vector<Vec>&              src,
                                  const std::pair<unsigned, unsigned>& face_range) const {
-                                  return; 
+                              
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities.
@@ -1186,7 +1186,7 @@ namespace Atmospheric_Flow {
                                   Vec&                                 dst,
                                   const std::vector<Vec>&              src,
                                   const std::pair<unsigned, unsigned>& face_range) const {
-                                    return;
+    return;
     /*--- Intermediate stages ---*/
     if(IMEX_stage <= n_stages) {
       /*--- We first start by declaring the suitable instances to read the available quantities. ---*/
