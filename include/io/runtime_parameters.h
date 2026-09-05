@@ -51,10 +51,15 @@ namespace RunTimeParameters {
     double T_ref;   /*--- Reference temperature ---*/
     double rho_ref; /*--- Reference density ---*/
 
-    double h;  /*--- Mountain height ---*/
-    double xc; /*--- x-center of the mountain ---*/
-    double yc; /*--- y-center of the mountain ---*/
-    double ac; /*--- Semi-Width of the mountain ---*/
+    double lapse_rate; /*--- Lapse rate for the background temperature profile ---*/
+    double b;          /*--- Parameter related to the width of the jet in the vertical direction ---*/
+    double Omega;      /*--- Rotation rate ---*/
+    double phi0;      /*--- Latitude for the f-plane approximation ---*/
+
+    double up; /*--- Amplitude of the perturbation ---*/
+    double Lp; /*--- Width of the perturbation ---*/
+    double xc; /*--- x-coordinate of the perturbation ---*/
+    double yc; /*--- y-coordinate of the perturbation ---*/
 
     double N; /*--- Buoyancy frequency ---*/
 
@@ -149,11 +154,15 @@ namespace RunTimeParameters {
                                 p_ref(1.0),
                                 T_ref(1.0),
                                 rho_ref(1.0),
-                                h(1.0),
-                                xc(1.0),
-                                yc(1.0),
-                                ac(1.0),
                                 N(0.01),
+                                lapse_rate(0.0065),
+                                b(1.0),
+                                Omega(7.2921e-5),
+                                phi0(45.0),
+                                up(1.0),
+                                Lp(600000.0),
+                                xc(2000000.0),
+                                yc(2500000.0),
                                 u_bar(1.0),
                                 p_bar(1.0),
                                 T_bar(1.0),
@@ -268,7 +277,7 @@ namespace RunTimeParameters {
                         Patterns::Double(0.0),
                         "The reference density.");
 
-      prm.declare_entry("h",
+     /* prm.declare_entry("h",
                         "1.0",
                         Patterns::Double(0.0),
                         "The hill height.");
@@ -283,13 +292,45 @@ namespace RunTimeParameters {
       prm.declare_entry("ac",
                         "1.0",
                         Patterns::Double(0.0),
-                        "The width of the hill.");
+                        "The width of the hill.");*/
 
       prm.declare_entry("N",
                         "0.01",
                         Patterns::Double(0.0),
                         "Buoyancy frequency.");
 
+                        prm.declare_entry("lapse_rate",
+                        "0.0065",
+                        Patterns::Double(0.0),
+                        "Lapse rate for the background temperature profile.");
+      prm.declare_entry("b",
+                        "1.0",
+                        Patterns::Double(0.0),
+                        "Parameter related to the width of the jet in the vertical direction.");
+      prm.declare_entry("Omega",
+                        "7.2921e-5",
+                        Patterns::Double(0.0),
+                        "Rotation rate.");
+      prm.declare_entry("phi0",
+                        "45.0",
+                        Patterns::Double(0.0),
+                        "Latitude for the f-plane approximation."); 
+      prm.declare_entry("up",
+                        "1.0",
+                        Patterns::Double(0.0),
+                        "Amplitude of the perturbation.");
+      prm.declare_entry("Lp",
+                        "600000.0",
+                        Patterns::Double(0.0),
+                        "Width of the perturbation.");
+      prm.declare_entry("xc",
+                        "2000000.0",
+                        Patterns::Double(0.0),
+                        "x-coordinate of the perturbation.");
+      prm.declare_entry("yc",
+                        "2500000.0",
+                        Patterns::Double(0.0),
+                        "y-coordinate of the perturbation.");
       prm.declare_entry("u_bar",
                         "1.0",
                         Patterns::Double(0.0),
@@ -527,12 +568,12 @@ namespace RunTimeParameters {
       p_ref   = prm.get_double("p_ref");
       T_ref   = prm.get_double("T_ref");
       rho_ref = prm.get_double("rho_ref");
-
+/*
       h  = prm.get_double("h");
       xc = prm.get_double("xc");
       yc = prm.get_double("yc");
       ac = prm.get_double("ac");
-
+*/
       N = prm.get_double("N");
 
       u_bar   = prm.get_double("u_bar");

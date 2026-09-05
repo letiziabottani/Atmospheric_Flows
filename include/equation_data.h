@@ -44,5 +44,5 @@ namespace EquationData {
   static const double Cp_Cv = 1.4;   /*--- Specific heats ratio ---*/
   static const double R     = 287.0; /*--- Specific gas constant ---*/
 
-  static const double g = 9.81; /*--- Acceleration of gravity ---*/
+  static const double g = 9.80616; /*--- Acceleration of gravity ---*/
 } // namespace EquationData

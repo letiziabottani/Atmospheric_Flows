@@ -1,71 +1,75 @@
 subsection Physical data
-  # In this subsection we declare the physical data
+# In this subsection we declare the physical data
   set initial_time = 0.0
-  set final_time   = 36.0
+  #set final_time   = 1036800  #12 days in seconds
+  set final_time   = 1200000 
 
   set x_min = 0.0
-  set y_min = 0.0
+  #set y_min = 0.0
   set z_min = 0.0
-  set x_max = 60000.0
-  set y_max = 40000.0
-  set z_max = 16000.0
+  set x_max = 20000000.0
+  #set x_max = 40000000.0
+  #set y_max = 6000000.0
+  set z_max = 30000.0
 
-  set Mach   = 0.03447578013
-  set Froude = 0.10096375546
-  set Rossby = 100
+  set Mach   = 1
+  set Froude = 0.3193379349
+  set Rossby = 9697.02
 
-  set L_ref   = 1000.0            # Reference length to build non-dimensional domain
-  set u_ref   = 10.0              # Reference velocity for non-dimensional variables 
+  #set Mach   = 0.121773
+  #set Froude = 0.353442
+  #set Rossby = 100
+
+  set L_ref   = 1.0            # Reference length to build non-dimensional domain
+  set u_ref   = 35.0              # Reference velocity for non-dimensional variables 
   set p_ref   = 100000.0          # Reference pressure for non-dimensional variables
-  set rho_ref = 1.188579415825103 # Reference density for non-dimensional variables
+  set rho_ref = 1.2105           # Reference density for non-dimensional variables
+  set T_ref =   288            # Reference temperature for non-dimensional variables
 
-  set h  = 400.0   # Hill height
-  set xc = 30000.0 # x-center of the hill
-  set yc = 20000.0 # y-center of the hill
-  set ac = 1000.0  # semi-width of the hill
 
-  set N = 0.01 # Buoyancy frequency
-
-  set u_bar = 10.0     # Background horizontal velocity 
+  set u_bar = 35.0     # Background horizontal velocity 
   set p_bar = 100000.0 # Background pressure (z = 0)
-  set T_bar = 293.15   # Background temperature (z = 0)
+  set T_bar = 288.0   # Background temperature (z = 0)
+
+  set phi0=0.7853981633974483 # 45grad in rad Latitude of the domain
+  
+  set lapse_rate = 0.005 # Lapse rate of the atmosphere (K/m)
+  set b = 2.0 # Exponent of the background temperature profile
+
+  set Omega = 7.292e-5 # Angular velocity of the Earth (rad/s)
+
+
+  # Perturbation parameters 
+  set up = 1.0
+  set Lp = 600000.0
+  set xc = 2000000.0
+  set yc = 2500000.0
+  
 end
 
 subsection Numerical data
   # In this subsection we declare some numerical data
-  # (time step, bcs (Rayliegh damping), and fixed point iteration tolerance)
-  set dt = 0.04
-
-  # Rayleigh damping parameters
-  set z_start        = 10000.0
-  set lambda_z       = 1.2
-  set x_start_left   = 20000.0
-  set lambda_x_left  = 1.2
-  set x_start_right  = 40000.0
-  set lambda_x_right = 1.2
-  set y_start_left   = 10000.0
-  set lambda_y_left  = 1.2
-  set y_start_right  = 30000.0
-  set lambda_y_right = 1.2
+  # (time step, bcs (Rayliegh damping), and fixed point iteration tolerance)  
+  set dt =100
 
   # Fixed point tolerances
-  set atol_fixed_point = 0.0
-  set rtol_fixed_point = 1e-6
+  set atol_fixed_point = 1e-06
+  set rtol_fixed_point = 1e-06
 end
 
 subsection Mesh parameters
   # In this subsection we declare the data that is relevant to the domain discretization
-  set n_elements_x = 15 # number of (initial) elements along x direction
-  set n_elements_y = 10 # number of (initial) elements along y direction
-  set n_elements_z = 4  # number of (initial) elements along z direction
-  set n_of_refines = 2  # number of global refines of the initial triangulation
+  set n_elements_x = 40 # number of (initial) elements along x direction
+  #set n_elements_y = 12 # number of (initial) elements along y direction
+  set n_elements_z = 6 # number of (initial) elements along z direction
+  set n_of_refines = 0 # number of global refines of the initial triangulation
 end
 
 subsection Data linear solvers
   # In this section we declare the parameters that are going to control the solution process.
   set max_iterations = 30000 # maximum number of iterations
-  set atol_iterative = 0.0   # absolute tolerance linear solvers
-  set rtol_iterative = 1e-8  # relative tolerance linear solvers
+  set atol_iterative = 1e-08 # absolute tolerance linear solvers
+  set rtol_iterative = 0  # relative tolerance linear solvers
 end
 
 subsection Restart data
@@ -81,10 +85,10 @@ end
 
 subsection Output data
   # The directory where results are saved
-  set saving directory = 3D_MELVIN_NONHYDROSTATIC_UNIFORM_INVERSE_MASS_MATRIX
+  set saving directory = BAROCLINIC_WAVE_INVERSE_MASS_MATRIX_mesh_coarse_dt1_v35const
 
   # The output frequency
-  set output_interval = 100
+  set output_interval = 20000
 
   # Finally we set the verbosity level
   set verbose = true
