@@ -3,6 +3,7 @@ subsection Physical data
   set initial_time = 0.0
   #set final_time   = 1036800  #12 days in seconds
   set final_time   = 1200000 
+  #set final_time = 1500
 
   set x_min = 0.0
   #set y_min = 0.0
@@ -88,7 +89,7 @@ subsection Output data
   set saving directory = BAROCLINIC_WAVE_INVERSE_MASS_MATRIX
 
   # The output frequency
-  set output_interval = 20000
+  set output_interval = 2000
 
   # Finally we set the verbosity level
   set verbose = true

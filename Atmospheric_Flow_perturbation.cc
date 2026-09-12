@@ -407,12 +407,12 @@ void EulerSolver<dim>::create_triangulation(const RunTimeParameters::Data_Storag
 
   Point<dim, Number> lower_left;
   lower_left[0] = static_cast<Number>(data.x_min);
-  lower_left[1] = static_cast<Number>(data.y_min);
+  lower_left[1] = static_cast<Number>(data.z_min);
   //lower_left[2] = static_cast<Number>(data.z_min);
   Point<dim, Number> upper_right;
   upper_right[0] = static_cast<Number>(data.x_max)/
                    static_cast<Number>(data.L_ref);
-  upper_right[1] = static_cast<Number>(data.y_max)/
+  upper_right[1] = static_cast<Number>(data.z_max)/
                    static_cast<Number>(data.L_ref);
   //upper_right[2] = static_cast<Number>(data.z_max)/
   //                 static_cast<Number>(data.L_ref);
@@ -681,6 +681,14 @@ void EulerSolver<dim>::update_density() {
   vectors_rhs_density_equation.push_back(u_bar);
 
   euler_matrix.vmult_rhs_density(rhs_rho_prime, vectors_rhs_density_equation);
+
+pcout << "    update_density: ||rhs_rho_prime|| = "
+      << rhs_rho_prime.l2_norm() << std::endl;
+
+euler_matrix.vmult(rho_prime_s[IMEX_stage - 1], rhs_rho_prime);
+
+pcout << "    update_density: ||rho_prime after vmult|| = "
+      << rho_prime_s[IMEX_stage - 1].l2_norm() << std::endl;
 
   /*--- Solve the system for the density ---*/
   euler_matrix.vmult(rho_prime_s[IMEX_stage - 1], rhs_rho_prime);
@@ -1352,6 +1360,13 @@ void EulerSolver<dim>::run(const bool verbose,
       rho_prime_s[IMEX_stage - 1].add(static_cast<Number>(-1.0), rho_bar);
       pcout << "Minimum density " << get_min_density() << std::endl;
       pcout << "Maximum density " << get_max_density() << std::endl;
+      pcout << "  BEFORE pressure fixed point:" << std::endl;
+      pcout << "    ||rho_prime|| = "
+            << rho_prime_s[IMEX_stage - 1].l2_norm() << std::endl;
+      pcout << "    ||p_prime||   = "
+            << pres_prime_s[IMEX_stage - 2].l2_norm() << std::endl;
+      pcout << "    ||u_prime||   = "
+            << u_prime_s[IMEX_stage - 2].l2_norm() << std::endl;
 
       verbose_cout << "  Fixed point pressure stage " << IMEX_stage << std::endl;
       // Set the current density to the operator
@@ -1361,6 +1376,13 @@ void EulerSolver<dim>::run(const bool verbose,
       pres_fixed.add(static_cast<Number>(1.0), pres_prime_fixed);
       u_prime_fixed.equ(static_cast<Number>(1.0), u_prime_s[IMEX_stage - 2]);
       const auto iter = perform_fixed_point_loop();
+      pcout << "  AFTER pressure fixed point:" << std::endl;
+      pcout << "    ||rho_prime|| = "
+            << rho_prime_s[IMEX_stage - 1].l2_norm() << std::endl;
+      pcout << "    ||p_prime||   = "
+            << pres_prime_fixed.l2_norm() << std::endl;
+      pcout << "    ||u_prime||   = "
+      << u_prime_fixed.l2_norm() << std::endl;
       tot_fixed_point_iters += (iter + 1);
       // Assign the fields after the fixed point loop
       pres_prime_s[IMEX_stage - 1].equ(static_cast<Number>(1.0), pres_prime_fixed);
@@ -1380,10 +1402,23 @@ void EulerSolver<dim>::run(const bool verbose,
     // Set the current density to the operator
     euler_matrix.set_rho_for_fixed(rho_old.back());
     update_velocity();
+    pcout << "AFTER FINAL update_velocity:" << std::endl;
+    pcout << "  ||rho_prime|| = "
+          << rho_prime_s.back().l2_norm() << std::endl;
+    pcout << "  ||u_prime||   = "
+          << u_prime_s.back().l2_norm() << std::endl;
+    pcout << "  ||p_prime||   = "
+          << pres_prime_s.back().l2_norm() << std::endl;
 
     verbose_cout << "  Update pressure" << std::endl;
     update_pressure();
-
+    pcout << "AFTER FINAL update_pressure:" << std::endl;
+    pcout << "  ||rho_prime|| = "
+          << rho_prime_s.back().l2_norm() << std::endl;
+    pcout << "  ||u_prime||   = "
+          << u_prime_s.back().l2_norm() << std::endl;
+    pcout << "  ||p_prime||   = "
+          << pres_prime_s.front().l2_norm() << std::endl;
     /*--- Update before the next time step ---*/
     rho_prime_s.front().equ(static_cast<Number>(1.0), rho_prime_s.back());
     u_prime_s.front().equ(static_cast<Number>(1.0), u_prime_s.back());
